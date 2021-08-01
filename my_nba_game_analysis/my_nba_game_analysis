@@ -25,7 +25,6 @@ def analyse_nba_game(data):
     
     dict["home_team"]["players_data"] = analyse_data(data, dict["home_team"]["name"], "HOME")
     dict["away_team"]["players_data"] = analyse_data(data, dict["away_team"]["name"], "AWAY")
-   
     return dict
 
 
@@ -39,7 +38,6 @@ def return_player_name(desc):
 
 def return_event_type(desc):
     res = ""
-    
     if ("misses" in desc and "block" in desc):
         res = res + "--" + "block"
     if ("misses" in desc):
@@ -72,7 +70,6 @@ def return_event_type(desc):
         res = res + "--" + "assist"
     if ("steal" in desc):
         res = res + "--" + "steal"
-
     return res
 
 
@@ -96,7 +93,6 @@ def analyse_data(data, team_name, home_away):
         df_pl = df_pl.dropna()
         i+=1
         dict[i] = return_stat(player_name, df_pl["Event_type"], df_pl["Goal_count"])
-    
     return dict
 
 
@@ -106,15 +102,15 @@ def return_stat(player_name, df_et, df_gl):
     
     dict["FG"] = np.sum([1 if "throw" in e and "goal_0" not in e and "makes_free" not in e else 0 for e in df_et])
     dict["FGA"] = np.sum([1 if "throw" in e else 0 for e in df_et])
-    dict["FG%"] = dict["FG"] / dict["FGA"]
+    dict["FG%"] = float(dict["FG"]) / float(dict["FGA"]) if dict["FG"] > 0 and dict["FGA"] > 0 else 0
     
     dict["3P"] = np.sum([1 if "3-pt" in e and "goal_0" not in e else 0 for e in df_et])
     dict["3PA"] = np.sum([1 if "3-pt" in e else 0 for e in df_et])
-    dict["3P%"] = dict["3P"] / dict["3PA"]
+    dict["3P%"] = float(dict["3P"]) / float(dict["3PA"]) if dict["3P"] > 0 and dict["3PA"] > 0 else 0
     
     dict["FT"] = np.sum([1 if "makes_free" in e and "goal_0" not in e else 0 for e in df_et])
     dict["FTA"] = np.sum([1 if "makes_free" in e and "" else 0 for e in df_et])
-    dict["FT%"] = dict["FT"] / dict["FTA"]
+    dict["FT%"] = float(dict["FT"]) / float(dict["FTA"]) if dict["FT"] > 0 and dict["FTA"] > 0 else 0
     
     dict["ORB"] = np.sum([1 if "offensive_rebound" in e else 0 for e in df_et])
     dict["DRB"] = np.sum([1 if "defensive_rebound" in e else 0 for e in df_et])
@@ -127,7 +123,6 @@ def return_stat(player_name, df_et, df_gl):
     dict["TOV"] = np.sum([1 if "turnover" in e else 0 for e in df_et])
     dict["PF"] = np.sum([1 if "foul" in e else 0 for e in df_et])
     dict["PTS"] = np.sum(df_gl)
-    
     return dict
 
 # FG – количество бросков, попавших в корзину, за исключением штрафных бросков (Field Goals);</li>
@@ -153,10 +148,11 @@ def return_stat(player_name, df_et, df_gl):
 def my_nba_game_analysis(file_name):
     data = csv_read(file_name)
     data = analyse_nba_game(data)
-    print(data) 
+    return data
     
     
-my_nba_game_analysis('nba_game_blazers_lakers_20181018.csv')
+print(my_nba_game_analysis('nba_game_blazers_lakers_20181018.csv'))
+print(my_nba_game_analysis('nba_game_warriors_thunder_20181016.csv'))
 
     
 # Аттрибуты csv.reader
