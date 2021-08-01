@@ -93,6 +93,8 @@ def analyse_data(data, team_name, home_away):
         df_pl = df_pl.dropna()
         i+=1
         dict[i] = return_stat(player_name, df_pl["Event_type"], df_pl["Goal_count"])
+    
+    dict["Team_Totals"] = return_stat("Team Totals", df["Event_type"], df["Goal_count"])
     return dict
 
 
