@@ -1,7 +1,10 @@
-def my_isalpha(x):
-  abc = range(ord("a"), ord("z")+1)
-  res = 0
-  if (type(x) == str and len(x) == 1):
-      if (ord(x) in abc):
+def my_isalpha(char):
+    char = char.lower()
+    abc = range(ord("a"), ord("z")+1)
+    res = 0
+    if (type(char) == str and len(char) == 1):
+      if (ord(char) in abc):
           res = 1
-  return res
+    return res
+
+my_isalpha("Z")
