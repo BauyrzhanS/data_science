@@ -28,12 +28,43 @@ def analyse_nba_game(data):
     return dict
 
 
+def analyse_data(data, team_name, home_away):
+    dict = {}
+    df = data.where(data["RELEVANT_TEAM"] == team_name)
+    df = df.dropna()
+    df.index = range(0, len(df))
+    
+    df_sc = pd.to_numeric(df[home_away + "_SCORE"])
+    df["Goal_count"] = [df_sc[e] - df_sc[e-1] if e > 0 else 0 for e in df_sc.index] 
+    
+    df["Player_name"] = [return_player_name(e) for e in df["DESCRIPTION"]]
+    df["Event_type"] = [return_event_type(e) for e in df["DESCRIPTION"]]
+    df["Event_type"] = df["Event_type"] + "--goal_" + df["Goal_count"].apply(str)    
+    df_et = df["Event_type"]
+    
+    i=0
+    for player_name in df["Player_name"].unique():
+        if (player_name != ""):
+            df_pl = df.where(df["Player_name"] == player_name)
+            df_pl = df_pl.dropna()
+            i+=1
+            dict[i] = return_stat(player_name, df_pl["Event_type"], df_pl["Goal_count"])
+    
+    dict["Team_Totals"] = return_stat("Team Totals", df["Event_type"], df["Goal_count"])
+    return dict
+
+
 def return_player_name(desc):
-    desc = desc.replace(". ", ".")
-    for i in desc.split(" "):
-        if ("." in i):
-            return i
-            break
+    if ("." in desc):
+        desc = desc.replace(". ", ".")
+        for i in desc.split(" "):
+            if ("." in i):
+                return i
+                break
+    elif ("Team" in desc):
+        return "Team"
+    else:
+        return ""
 
 
 def return_event_type(desc):
@@ -51,7 +82,7 @@ def return_event_type(desc):
     if ("makes free" in desc):
         res = res + "--" + "makes_free--throw"
     if ("hook shot" in desc):
-        res = res + "--" + "hook_shot--throw"
+        res = res + "--" + "hook_shot--throw"ф
     if ("dunk at rim" in desc):
         res = res + "--" + "dunk_at_rim--throw"
     if ("jump shot" in desc):
@@ -70,32 +101,9 @@ def return_event_type(desc):
         res = res + "--" + "assist"
     if ("steal" in desc):
         res = res + "--" + "steal"
+    if ("Violation" in desc):
+        res = res + "--" + "violation"
     return res
-
-
-def analyse_data(data, team_name, home_away):
-    dict = {}
-    df = data.where(data["RELEVANT_TEAM"] == team_name)
-    df = df.dropna()
-    df.index = range(0, len(df))
-    
-    df_sc = pd.to_numeric(df[home_away + "_SCORE"])
-    df["Goal_count"] = [df_sc[e] - df_sc[e-1] if e > 0 else 0 for e in df_sc.index] 
-    
-    df["Player_name"] = [return_player_name(e) for e in df["DESCRIPTION"]]
-    df["Event_type"] = [return_event_type(e) for e in df["DESCRIPTION"]]
-    df["Event_type"] = df["Event_type"] + "--goal_" + df["Goal_count"].apply(str)    
-    df_et = df["Event_type"]
-    
-    i=0
-    for player_name in df["Player_name"].unique():
-        df_pl = df.where(df["Player_name"] == player_name)
-        df_pl = df_pl.dropna()
-        i+=1
-        dict[i] = return_stat(player_name, df_pl["Event_type"], df_pl["Goal_count"])
-    
-    dict["Team_Totals"] = return_stat("Team Totals", df["Event_type"], df["Goal_count"])
-    return dict
 
 
 def return_stat(player_name, df_et, df_gl):
@@ -146,16 +154,17 @@ def return_stat(player_name, df_et, df_gl):
 # PF – количество персональных замечаний (Personal Fouls);</li>
 # PTS – количество набранных очков (Points);</li>
 
+
 def format_data(data):
     res = ""
     for i in data:
-        res = res + "\n\n" + i + "\n"
+        res = res + "\n\n" + i + ": " + data[i]["name"]  + "\n"
         for c in data[i]["players_data"][1]:                
-            res = res + str(c) + "	"        
+            res = res + str(c) + " | "        
         for j in data[i]["players_data"]:
             res = res + "\n"            
             for z in data[i]["players_data"][j]:                
-                res = res + str(data[i]["players_data"][j][z]) + "	"
+                res = res + str(data[i]["players_data"][j][z]) + " | "
     return res
 
 
@@ -169,13 +178,4 @@ def my_nba_game_analysis(file_name):
 my_nba_game_analysis('nba_game_blazers_lakers_20181018.csv')
 my_nba_game_analysis('nba_game_warriors_thunder_20181016.csv')
 
-    
-# Аттрибуты csv.reader
-# delimiter 	Устанавливает символ, с помощью которого разделяются элементы в файле. По умолчанию используется запятая.
-# doublequote 	Если True, то символ quotechar удваивается, если False, то к символу qutechar добавляется ecsapechar в качестве префикса.
-# escapechar 	Строка из одного символа, которая используется для экранирования символа-разделителя.
-# lineterminator 	Определяет разделитель для строк, по умолчанию используется «\r\n»
-# quotechar 	Определяет символ, который используется для окружения символа-разделителя. По умолчанию используются двойные кавычки, то есть quotechar = ‘ » ‘.
-# quoting 	Определяет символ, который используется для экранирования символа разделителя (если не используются кавычки).
-# skipinitialspace 	Если установить значение этого параметра в True, то все пробелы после символа-разделителя будут игнорироваться.
-# strict 	Если установить в True, то при неправильном вводе CSV будет возбуждаться исключение Error.
+
